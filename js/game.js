@@ -22,8 +22,6 @@ var imgourPart = 'ourPart' //图片变量
 var imgbg = 'bg'
 var imgbullet = 'zidan'
 
-var originX = 0
-var originY = 0
 var ourPartX = canvasW / 2
 var ourPartY = canvasH - 70
 var angel = 0
@@ -36,13 +34,16 @@ var goldArr = []
 var goldRun = [];
 var intger = '000000';
 var intgerArr = getInteger(0);
-var bottomL = intgerArr.length*80;
+var bottomL = intgerArr.length * 80;
 var drawBg = null //背景对象初始化
 var bulletList = null //子弹列表初始化
 var bullet = null //子弹列表初始化
 var targetList = null //目标列表初始化
 var ourPart = null //我方初始化
 var loading = null //过场动画对象初始化
+var mousedownfun = null // 鼠标点击方法
+var countDown = null//倒计时
+var keyupfun = null
 var arr = ['bg.jpg', 'pig.png', 'ourPart.png', 'zidan.png', 'gold.png', 'fish1.png', 'fish1_1.png', 'fish2.png',
 	'fish2_1.png',
 	'fish3.png', 'fish3_1.png', 'integer.png', 'bottom.jpg'
@@ -90,17 +91,19 @@ function loadImg(arr) {
 				console.log(result, '图片加载结束')
 				cur_phase = PHASE_READY;
 				drawBg = new DrawBg(result[imgbg]); //创建对象就行了，后面放在引擎里执行
+				loading = new Loading()//创建过场动画
+				countDown = new CountDown() // 创建倒计时
 				
-				pig.arcX = result['pig'].width/2;
-				pig.arcY = (canvasH-result['pig'].height/2);
+				pig.arcX = result['pig'].width / 2;
+				pig.arcY = (canvasH - result['pig'].height / 2);
 				pig.curPoy = 0.5;
-				
+
 				startEngine();
 			}
 		}
 	}
 }
-loadImg(arr)
+
 
 //背景
 function DrawBg(img) {
@@ -134,6 +137,25 @@ function Loading() {
 	}
 }
 
+// 倒计时
+function CountDown(){
+	this.moveCount = 0
+	this.num = 5
+	this.draw=function(){
+		fontfun(this.num)
+	}
+	this.move = function(){
+		this.moveCount++
+		if(this.moveCount%60==0){//1秒
+			this.num--
+			if (this.num==0) {//结束了
+				cur_phase = PHASE_GAMEOVER
+				this.num = 5
+			}
+		}
+	}
+}
+
 // 我方
 function OurPart() {
 	this.direction = 1; //旋转方向
@@ -141,6 +163,14 @@ function OurPart() {
 	this.moveCount = 0; //draw()函数被调用的次数;
 
 	this.draw = function() {
+		ctx.save()
+		ctx.translate(ourPartX, ourPartY + 32)
+		ctx.rotate(angel)
+		ctx.drawImage(result[imgourPart], 0, 0, 64, 64, -32, -32, 64, 64);
+		ctx.restore()
+	}
+
+	this.move = function() {
 		this.moveCount += this.speed * this.direction
 		if (this.moveCount >= 90) {
 			this.direction = -1
@@ -149,12 +179,6 @@ function OurPart() {
 			this.direction = 1
 		}
 		angel = this.moveCount * Math.PI / 180
-
-		ctx.save()
-		ctx.translate(ourPartX, ourPartY + 32)
-		ctx.rotate(angel)
-		ctx.drawImage(result[imgourPart], 0, 0, 64, 64, -32, -32, 64, 64);
-		ctx.restore()
 	}
 
 	// 监听鼠标移动
@@ -172,35 +196,20 @@ function OurPart() {
 	}, false); */
 
 	//监听鼠标点击事件
-	canvas.addEventListener('mousedown', function(e) {
+	mousedownfun = function(e) {
 		var e = e || event
-		var layerX = e.layerX;
-		var layerY = e.layerY;
 		// 添加子弹
-		bullet = new Bullet()
-		bullet.startX = layerX
-		bullet.startY = layerY
-		bulletList.add(bullet);
-	}, false);
-
-	//监听键盘事件
-	document.body.addEventListener('keydown', function(e) {
-		var e = e || event
-		if (e.keyCode == 13) {
-			console.log('点了回车') //13
+		if(cur_phase == PHASE_PLAY){
 			bullet = new Bullet()
+			bullet.startX = e.layerX//用鼠标位置的话，有用，放不放都无所谓了
+			bullet.startY = e.layerY
 			bulletList.add(bullet);
-		} else if(e.keyCode == 8){//回车
-			if(cur_phase == PHASE_PAUSE){
-				cur_phase = PHASE_PLAY
-			}else{
-				cur_phase = PHASE_PAUSE 
-			}
-		}else if(e.keyCode==27){
-			cur_phase = PHASE_GAMEOVER
 		}
-		console.log(e.keyCode);
-	}, false);
+	}
+	if (mousedownfun) {
+		// 只添加一次方法
+		canvas.addEventListener('mousedown', mousedownfun, false);
+	}
 }
 
 // 子弹
@@ -279,65 +288,48 @@ function Target() {
 	this.curPoy = 0
 	this.step = 0
 	this.endPoy = 0
+	this.speedX=0
+	this.speedY=0
 	this.crashed = false;
 	this.removable = false; //可以删除吗
 
 	this.draw = function() {
-		// ctx.save();
-		// ctx.translate(this.x, this.y);
-		// ctx.rotate(this.hudu);
-		// ctx.drawImage(result[this.name], 0, parseInt(this.curPoy) * this.h, this.w, this.h,
-		// 	speedX, speedY, this.w, this.h);
-		// ctx.restore();
-	}
-
-	this.move = function() {
-		var speedX = 2;
-		if (this.type == 1) {
-			speedX = -2;
-		}
-		var speedY = parseFloat(speedX * Math.tan(this.hudu));
-		this.x = this.x + speedX;
-		this.y = this.y + speedY;
-
 		ctx.save();
 		ctx.translate(this.x, this.y);
 		ctx.rotate(this.hudu);
 		ctx.drawImage(result[this.name], 0, parseInt(this.curPoy) * this.h, this.w, this.h,
-			speedX, speedY, this.w, this.h);
+			this.speedX, this.speedY, this.w, this.h);
 		ctx.restore();
+	}
 
+	this.move = function() {
+		this.speedX = 2;
+		if (this.type == 1) {
+			this.speedX = -2;
+		}
+		this.speedY = parseFloat(this.speedX * Math.tan(this.hudu));
+		this.x += this.speedX;
+		this.y += this.speedY;
 		this.curPoy += this.step;
 		if (this.curPoy > this.endPoy) {
 			this.curPoy = 0;
 		}
-
-		if (this.type == 0 && this.x > canvasW || this.crashed) {
-			this.removable = true;
-		} else if (this.x < -this.w) {
+		if (this.type == 0 && this.x > canvasW || this.x < -this.w || this.crashed) {
 			this.removable = true;
 		}
-		/* if (this.crashed) {
-			if (this.moveCount % 3 === 0) {
-				this.index++;
-				if (this.index === imgs.length - 1) {
-					this.removable = true;
-				}
-			}
-		} */
 	}
 }
 
 // 目标列表
 function TargetList() {
-	this.list = []; //所有的敌机
+	this.list = []; //所有的
 	this.moveCount = 0;
 	this.add = function(target) {
 		this.list.push(target);
 	}
 	this.draw = function() {
 		for (var i = 0; i < this.list.length; i++) {
-			// this.list[i].draw();
+			this.list[i].draw();
 		}
 	}
 	this.move = function() {
@@ -348,16 +340,16 @@ function TargetList() {
 			var iType = Math.round(Math.random() * 1);
 			var target = new Target()
 			target.x = -fashArr[rand].w,
-				target.y = canvasH / 2 - 150,
-				target.hudu = (Math.PI / 180) * (parseInt(Math.random() * 60 - 20)),
-				target.curPoy = 0,
-				target.step = fashArr[rand].step,
-				target.endPoy = fashArr[rand].endPoy,
-				target.name = fashArr[rand].name,
-				target.w = fashArr[rand].w,
-				target.h = fashArr[rand].h,
-				target.intger = fashArr[rand].intger,
-				target.type = 0
+			target.y = canvasH / 2 - 150,
+			target.hudu = (Math.PI / 180) * (parseInt(Math.random() * 60 - 20)),
+			target.curPoy = 0,
+			target.step = fashArr[rand].step,
+			target.endPoy = fashArr[rand].endPoy,
+			target.name = fashArr[rand].name,
+			target.w = fashArr[rand].w,
+			target.h = fashArr[rand].h,
+			target.intger = fashArr[rand].intger,
+			target.type = 0
 			if (iType === 1) {
 				target.type = 1;
 				target.x = canvasW + target.w;
@@ -397,34 +389,35 @@ function TargetList() {
 				goldArr[i].curPoy += 0.5;
 			}
 		}
-		
+
 		//猪
-		if(pig.curPoy>0.5){
+		if (pig.curPoy > 0.5) {
 			pig.curPoy -= 0.08;
-		}else{
+		} else {
 			pig.curPoy = 0;
 		}
-		ctx.drawImage(result['pig'],0,Math.round(pig.curPoy)*90,90,90,0,canvasH-90,90,90);
-		
+		ctx.drawImage(result['pig'], 0, Math.round(pig.curPoy) * 90, 90, 90, 0, canvasH - 90, 90, 90);
+
 		//金币运动
-		for(i=0;i<goldRun.length;i++){
-			ctx.drawImage(result['gold'],0,0,49,51,goldRun[i].curX,goldRun[i].curY,49,51);
-			var speedX = parseInt((pig.arcX-goldRun[i].curX)*0.2);
-			var speedY = parseInt((pig.arcY-20-goldRun[i].curY)*0.2);
-				goldRun[i].curX += speedX;
-				goldRun[i].curY += speedY;
-				if(speedX==0){
-					goldRun.splice(i,1);
-					i--;
-					pig.curPoy = 1;
-				}
+		for (i = 0; i < goldRun.length; i++) {
+			ctx.drawImage(result['gold'], 0, 0, 49, 51, goldRun[i].curX, goldRun[i].curY, 49, 51);
+			var speedX = parseInt((pig.arcX - goldRun[i].curX) * 0.2);
+			var speedY = parseInt((pig.arcY - 20 - goldRun[i].curY) * 0.2);
+			goldRun[i].curX += speedX;
+			goldRun[i].curY += speedY;
+			if (speedX == 0) {
+				goldRun.splice(i, 1);
+				i--;
+				pig.curPoy = 1;
+			}
 		}
 		//积分运动
-		for(i=0;i<intgerArr.length;i++){
-			ctx.drawImage(result['integer'],0,intgerArr[i].old,result['integer'].width,result['integer'].height/10,bottomL+(i*result['integer'].width),5,result['integer'].width,result['integer'].height/10);
-			var intSpeed = (intgerArr[i].number-intgerArr[i].old)/8;
-				intSpeed = intSpeed>0?Math.ceil(intSpeed):Math.floor(intSpeed);
-				intgerArr[i].old += intSpeed;
+		for (i = 0; i < intgerArr.length; i++) {
+			ctx.drawImage(result['integer'], 0, intgerArr[i].old, result['integer'].width, result['integer'].height / 10,
+				bottomL + (i * result['integer'].width), 5, result['integer'].width, result['integer'].height / 10);
+			var intSpeed = (intgerArr[i].number - intgerArr[i].old) / 8;
+			intSpeed = intSpeed > 0 ? Math.ceil(intSpeed) : Math.floor(intSpeed);
+			intgerArr[i].old += intSpeed;
 		}
 		/**********移动敌机****************/
 		for (var i = 0; i < this.list.length; i++) {
@@ -475,57 +468,104 @@ function collideTest(x1, y1, w1, h1, x2, y2, w2, h2) {
 
 }
 
+// 字体
+function fontfun(t) {
+	ctx.lineWidth = 40;
+	ctx.strokeStyle = '#aaa';
+	ctx.font = '60px SimHei';
+	ctx.fillStyle = '#000';
+	var w = ctx.measureText(t).width;
+	ctx.fillText(t, canvasW / 2 - w / 2, canvasH / 2 + 15);
+}
+
+
 //游戏引擎
 function startEngine() {
 	timer = setInterval(function() {
 		// ctx.clearRect(0,0,canvasW,canvasH);
 		drawBg.draw() //一直画背景，相当于清除画布
-
 		switch (cur_phase) {
 			case PHASE_READY: //准备状态
 				console.log('准备中');
-				var t = '准备中'
-				ctx.lineWidth = 40;
-				ctx.strokeStyle = '#aaa';
-				ctx.font = '60px SimHei';
-				ctx.fillStyle = '#000';
-				var w = ctx.measureText(t).width;
-				ctx.fillText(t, canvasW / 2 - w / 2, canvasH / 2 + 15);
+				fontfun('点击屏幕开始游戏')
 				break;
 			case PHASE_STARTING: //启动中，过场动画
 				loading.draw()
 				break;
 			case PHASE_PLAY: //游戏中
+				console.log('计时开始');
+				countDown.draw()
+				countDown.move()
 				ourPart.draw();
-				// hero.move();
+				ourPart.move();
 				bulletList.draw();
 				bulletList.move();
-				// targetList.draw();
+				targetList.draw();
 				targetList.move();
 				break;
 			case PHASE_PAUSE: //游戏暂停
-			// ourPart.draw();
-			// bulletList.draw();
+				fontfun('已暂停')
+				ourPart.draw();
+				bulletList.draw();
+				targetList.draw();
 				break;
 			case PHASE_GAMEOVER: //游戏结束
-			clearInterval(timer)
-			timer = null
+				fontfun('游戏结束,点击屏幕继续开始')
+				clearInterval(timer)
+				timer = null
 				break;
 		}
 	}, 1000 / 60)
 }
 
+
+
 // 点击事件
 canvas.addEventListener('click', function() {
-	if (cur_phase === PHASE_READY) {
-		cur_phase = PHASE_STARTING;
-		loading = new Loading()
-	}else if( cur_phase==PHASE_GAMEOVER){
-		txt = 3
-		startEngine();
-		cur_phase = PHASE_READY;
+	switch (cur_phase){
+		case PHASE_READY://准备状态，点击开始
+			cur_phase = PHASE_STARTING;
+			break;
+		case PHASE_GAMEOVER://结束状态，点击重新开始
+			txt = 3
+			cur_phase = PHASE_STARTING;
+			startEngine();
+			break;
+		default:
+			break;
 	}
 	/* if(!timer){
 		loading = new Loading()
 	} */
 }, false);
+
+keyupfun = function(e) {
+	var e = e || event
+	var code = e.keyCode
+	switch (code){
+		case 13://enter 发射
+			if (cur_phase == PHASE_PLAY) {
+				bullet = new Bullet()
+				bulletList.add(bullet);
+			}
+			break;
+		case 8://backspace 暂停
+			if (cur_phase == PHASE_PAUSE) {
+				cur_phase = PHASE_PLAY
+			} else {
+				cur_phase = PHASE_PAUSE
+			}
+			break;
+		case 27://esc 结束游戏
+			cur_phase = PHASE_GAMEOVER
+			break;
+		default:
+			break;
+	}
+	console.log(e.keyCode);
+}
+if (keyupfun) {
+	document.body.addEventListener('keyup', keyupfun, false);
+}
+
+window.onload = loadImg(arr)

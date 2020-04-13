@@ -29,7 +29,7 @@ var txt = 3;
 var txtWidth = ctx.measureText(txt).width;
 var timer = null
 var result = {}
-var pig = {};
+
 var goldArr = []
 var goldRun = [];
 var intger = '000000';
@@ -44,6 +44,7 @@ var loading = null //过场动画对象初始化
 var mousedownfun = null // 鼠标点击方法
 var countDown = null//倒计时
 var keyupfun = null
+var pig = null;
 var arr = ['bg.jpg', 'pig.png', 'ourPart.png', 'zidan.png', 'gold.png', 'fish1.png', 'fish1_1.png', 'fish2.png',
 	'fish2_1.png',
 	'fish3.png', 'fish3_1.png', 'integer.png', 'bottom.jpg'
@@ -86,18 +87,16 @@ function loadImg(arr) {
 		img.src = src + arr[i];
 		img.onload = function() {
 			num++
-			console.log(num, length, '正在加载')
 			if (num == length) {
-				console.log(result, '图片加载结束')
 				cur_phase = PHASE_READY;
 				drawBg = new DrawBg(result[imgbg]); //创建对象就行了，后面放在引擎里执行
 				loading = new Loading()//创建过场动画
 				countDown = new CountDown() // 创建倒计时
-				
-				pig.arcX = result['pig'].width / 2;
+				pig = new Pig()
+				/* pig.arcX = result['pig'].width / 2;
 				pig.arcY = (canvasH - result['pig'].height / 2);
-				pig.curPoy = 0.5;
-
+				pig.curPoy = 0.5; */
+				
 				startEngine();
 			}
 		}
@@ -135,6 +134,28 @@ function Loading() {
 		}
 
 	}
+}
+
+//猪
+function Pig(){
+	this.img = result['pig']
+	this.W = this.img.width
+	this.H = this.img.height
+	this.X = this.W / 2;
+	this.Y = (canvasH - this.H / 2);
+	this.curPoy = 0.5;
+	
+	this.draw=function(){
+		ctx.drawImage(this.img, 0, Math.round(this.curPoy) * 90, 90, 90, 0, canvasH - 90, 90, 90);
+	}
+	this.move = function(){
+		if (this.curPoy > 0.5) {
+			this.curPoy -= 0.08;
+		} else {
+			this.curPoy = 0;
+		}
+	}
+	
 }
 
 // 倒计时
@@ -391,18 +412,14 @@ function TargetList() {
 		}
 
 		//猪
-		if (pig.curPoy > 0.5) {
-			pig.curPoy -= 0.08;
-		} else {
-			pig.curPoy = 0;
-		}
-		ctx.drawImage(result['pig'], 0, Math.round(pig.curPoy) * 90, 90, 90, 0, canvasH - 90, 90, 90);
+		pig.draw()
+		pig.move()
 
 		//金币运动
 		for (i = 0; i < goldRun.length; i++) {
 			ctx.drawImage(result['gold'], 0, 0, 49, 51, goldRun[i].curX, goldRun[i].curY, 49, 51);
-			var speedX = parseInt((pig.arcX - goldRun[i].curX) * 0.2);
-			var speedY = parseInt((pig.arcY - 20 - goldRun[i].curY) * 0.2);
+			var speedX = parseInt((pig.X - goldRun[i].curX) * 0.2);
+			var speedY = parseInt((pig.Y - 20 - goldRun[i].curY) * 0.2);
 			goldRun[i].curX += speedX;
 			goldRun[i].curY += speedY;
 			if (speedX == 0) {
@@ -410,6 +427,7 @@ function TargetList() {
 				i--;
 				pig.curPoy = 1;
 			}
+			
 		}
 		//积分运动
 		for (i = 0; i < intgerArr.length; i++) {
@@ -437,14 +455,15 @@ function getInteger(num) {
 	for (var i = 0; i < String(intger).length; i++) {
 		intgerArr.push({
 			old: Number(String(intger)[i]) * 53,
-			curPoy: 0
+			curPoy: 0,
 		});
 	}
-	intger = parseFloat(intger) + num;
+	/* intger = parseFloat(intger) + num;
 	//补齐前面的0，还有一种方式是乘一万然后加个空字符串，在截取后面的数字
 	for (i = String(intger).length; i < 6; i++) {
 		intger = '0' + intger;
-	}
+	} */
+	intger = (parseFloat(intger) + num+1000000+'').slice(1)
 	for (i = 0; i < intgerArr.length; i++) {
 		//现在的位置
 		intgerArr[i].number = Number(String(intger)[i]) * 53;
@@ -493,9 +512,8 @@ function startEngine() {
 				loading.draw()
 				break;
 			case PHASE_PLAY: //游戏中
-				console.log('计时开始');
-				countDown.draw()
-				countDown.move()
+				// countDown.draw()
+				// countDown.move()
 				ourPart.draw();
 				ourPart.move();
 				bulletList.draw();

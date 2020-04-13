@@ -1,0 +1,164 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Microsoft Yahei", tahoma, arial, "Hiragino Sans GB";
+}
+
+div, li {
+    outline: none;
+}
+
+a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    outline: none;
+}
+
+ul {
+    list-style: none;
+}
+
+
+.main {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+}
+
+.block {
+    display: block !important;
+}
+
+.hide {
+    display: none !important;
+}
+
+.focus {
+    display: none;
+}
+
+.zIndex {
+    z-index: 2;
+}
+
+.f {
+    display: none;
+}
+
+img.f {
+    z-index: 1 !important;
+}
+div.f{
+    z-index: 3;
+    display: none;
+}
+div.n{
+    z-index: 1;
+}
+div.a{
+    z-index: 2;
+    display: none;
+}
+
+.scale {
+    z-index: 1 !important;
+    transform: scale(1.05);
+    -ms-transform: scale(1.05); /* IE 9 */
+    -moz-transform: scale(1.05); /* Firefox */
+    -webkit-transform: scale(1.05); /* Safari 和 Chrome */
+    -o-transform: scale(1.05);
+}
+
+.s {
+    transition: all 0.1s !important;
+    -webkit-transition: all 0.2s !important;
+    -moz-transition: width 0.2s !important; /* Firefox 4 */
+    -o-transition: width 0.2s !important; /* Opera */
+}
+
+/*免费图标*/
+.free {
+    top: 0;
+    right: 0;
+    width: 69px;
+    height: 59px;
+    z-index: 1;
+    position: absolute;
+    /*background: url("../imgs/common/free.png") center no-repeat;*/
+}
+
+/*提示*/
+.toast {
+    left: 0;
+    right: 0;
+    top: 330px;
+    font-size: 20px;
+    color: #fff;
+    display: none;
+    z-index: 10;
+    text-align: center;
+    position: absolute;
+}
+
+.toast span {
+    border-radius: 5px;
+    padding: 10px 20px;
+    display: inline-block;
+    background: rgba(0, 0, 0, .8)
+}
+
+/* tip提示 */
+#tip {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+    display: none;
+    position: absolute;
+    background: rgba(0, 0, 0, .4);
+}
+
+#tip_bg {
+    width: 541px;
+    height: 347px;
+    margin: 0 auto;
+    margin-top: 213px;
+    position: relative;
+}
+
+#tip_text {
+    font-size: 22px;
+    color: #0e88c1;
+    position: absolute;
+    width: 403px;
+    height: 170px;
+    top: 78px;
+    left: 79px;
+}
+
+/* 滚动标题 */
+.font {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+/*模板*/
+.template-list > div, .template-list > div img {
+    position: absolute;
+}
+
+.template-list-div > div, .template-list-div > div div {
+    position: absolute;
+}
+
+.template-item, .template-item > img {
+    position: absolute;
+}

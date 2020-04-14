@@ -42,12 +42,12 @@ var targetList = null //目标列表初始化
 var ourPart = null //我方初始化
 var loading = null //过场动画对象初始化
 var mousedownfun = null // 鼠标点击方法
-var countDown = null//倒计时
+var countDown = null //倒计时
 var keyupfun = null
 var pig = null;
 var arr = ['bg.jpg', 'pig.png', 'ourPart.png', 'zidan.png', 'gold.png', 'fish1.png', 'fish1_1.png', 'fish2.png',
 	'fish2_1.png',
-	'fish3.png', 'fish3_1.png', 'integer.png', 'bottom.jpg'
+	'fish3.png', 'fish3_1.png', 'fish4.png', 'fish4_1.png', 'integer.png', 'bottom.jpg'
 ]
 var fashArr = [{
 		name: 'fish1',
@@ -72,7 +72,15 @@ var fashArr = [{
 		w: 50,
 		h: 56,
 		intger: 1
-	}
+	},
+	/* {
+		name: 'fish4',
+		endPoy: 12,
+		step: 0.1,
+		w: 80,
+		h: 80,
+		intger: 1
+	} */
 ]
 
 
@@ -90,13 +98,13 @@ function loadImg(arr) {
 			if (num == length) {
 				cur_phase = PHASE_READY;
 				drawBg = new DrawBg(result[imgbg]); //创建对象就行了，后面放在引擎里执行
-				loading = new Loading()//创建过场动画
+				loading = new Loading() //创建过场动画
 				countDown = new CountDown() // 创建倒计时
 				pig = new Pig()
 				/* pig.arcX = result['pig'].width / 2;
 				pig.arcY = (canvasH - result['pig'].height / 2);
 				pig.curPoy = 0.5; */
-				
+
 				startEngine();
 			}
 		}
@@ -137,39 +145,39 @@ function Loading() {
 }
 
 //猪
-function Pig(){
+function Pig() {
 	this.img = result['pig']
 	this.W = this.img.width
 	this.H = this.img.height
 	this.X = this.W / 2;
 	this.Y = (canvasH - this.H / 2);
 	this.curPoy = 0.5;
-	
-	this.draw=function(){
+
+	this.draw = function() {
 		ctx.drawImage(this.img, 0, Math.round(this.curPoy) * 90, 90, 90, 0, canvasH - 90, 90, 90);
 	}
-	this.move = function(){
+	this.move = function() {
 		if (this.curPoy > 0.5) {
 			this.curPoy -= 0.08;
 		} else {
 			this.curPoy = 0;
 		}
 	}
-	
+
 }
 
 // 倒计时
-function CountDown(){
+function CountDown() {
 	this.moveCount = 0
 	this.num = 5
-	this.draw=function(){
+	this.draw = function() {
 		fontfun(this.num)
 	}
-	this.move = function(){
+	this.move = function() {
 		this.moveCount++
-		if(this.moveCount%60==0){//1秒
+		if (this.moveCount % 60 == 0) { //1秒
 			this.num--
-			if (this.num==0) {//结束了
+			if (this.num == 0) { //结束了
 				cur_phase = PHASE_GAMEOVER
 				this.num = 5
 			}
@@ -220,9 +228,9 @@ function OurPart() {
 	mousedownfun = function(e) {
 		var e = e || event
 		// 添加子弹
-		if(cur_phase == PHASE_PLAY){
+		if (cur_phase == PHASE_PLAY) {
 			bullet = new Bullet()
-			bullet.startX = e.layerX//用鼠标位置的话，有用，放不放都无所谓了
+			bullet.startX = e.layerX //用鼠标位置的话，有用，放不放都无所谓了
 			bullet.startY = e.layerY
 			bulletList.add(bullet);
 		}
@@ -309,8 +317,8 @@ function Target() {
 	this.curPoy = 0
 	this.step = 0
 	this.endPoy = 0
-	this.speedX=0
-	this.speedY=0
+	this.speedX = 0
+	this.speedY = 0
 	this.crashed = false;
 	this.removable = false; //可以删除吗
 
@@ -361,16 +369,16 @@ function TargetList() {
 			var iType = Math.round(Math.random() * 1);
 			var target = new Target()
 			target.x = -fashArr[rand].w,
-			target.y = canvasH / 2 - 150,
-			target.hudu = (Math.PI / 180) * (parseInt(Math.random() * 60 - 20)),
-			target.curPoy = 0,
-			target.step = fashArr[rand].step,
-			target.endPoy = fashArr[rand].endPoy,
-			target.name = fashArr[rand].name,
-			target.w = fashArr[rand].w,
-			target.h = fashArr[rand].h,
-			target.intger = fashArr[rand].intger,
-			target.type = 0
+				target.y = canvasH / 2 - 150,
+				target.hudu = (Math.PI / 180) * (parseInt(Math.random() * 60 - 20)),
+				target.curPoy = 0,
+				target.step = fashArr[rand].step,
+				target.endPoy = fashArr[rand].endPoy,
+				target.name = fashArr[rand].name,
+				target.w = fashArr[rand].w,
+				target.h = fashArr[rand].h,
+				target.intger = fashArr[rand].intger,
+				target.type = 0
 			if (iType === 1) {
 				target.type = 1;
 				target.x = canvasW + target.w;
@@ -427,7 +435,7 @@ function TargetList() {
 				i--;
 				pig.curPoy = 1;
 			}
-			
+
 		}
 		//积分运动
 		for (i = 0; i < intgerArr.length; i++) {
@@ -463,7 +471,7 @@ function getInteger(num) {
 	for (i = String(intger).length; i < 6; i++) {
 		intger = '0' + intger;
 	} */
-	intger = (parseFloat(intger) + num+1000000+'').slice(1)
+	intger = (parseFloat(intger) + num + 1000000 + '').slice(1)
 	for (i = 0; i < intgerArr.length; i++) {
 		//现在的位置
 		intgerArr[i].number = Number(String(intger)[i]) * 53;
@@ -540,11 +548,11 @@ function startEngine() {
 
 // 点击事件
 canvas.addEventListener('click', function() {
-	switch (cur_phase){
-		case PHASE_READY://准备状态，点击开始
+	switch (cur_phase) {
+		case PHASE_READY: //准备状态，点击开始
 			cur_phase = PHASE_STARTING;
 			break;
-		case PHASE_GAMEOVER://结束状态，点击重新开始
+		case PHASE_GAMEOVER: //结束状态，点击重新开始
 			txt = 3
 			cur_phase = PHASE_STARTING;
 			startEngine();
@@ -560,21 +568,21 @@ canvas.addEventListener('click', function() {
 keyupfun = function(e) {
 	var e = e || event
 	var code = e.keyCode
-	switch (code){
-		case 13://enter 发射
+	switch (code) {
+		case 13: //enter 发射
 			if (cur_phase == PHASE_PLAY) {
 				bullet = new Bullet()
 				bulletList.add(bullet);
 			}
 			break;
-		case 8://backspace 暂停
+		case 8: //backspace 暂停
 			if (cur_phase == PHASE_PAUSE) {
 				cur_phase = PHASE_PLAY
 			} else {
 				cur_phase = PHASE_PAUSE
 			}
 			break;
-		case 27://esc 结束游戏
+		case 27: //esc 结束游戏
 			cur_phase = PHASE_GAMEOVER
 			break;
 		default:
